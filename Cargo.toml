@@ -1,0 +1,10 @@
+[package]
+name = "simplesmbios"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+measurements = "0.11.0"
+smbios-lib = "0.9.0"
