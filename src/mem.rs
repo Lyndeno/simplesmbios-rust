@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use measurements::{data::Data, Frequency};
 
 use crate::{memerror::SMBiosError, smbios::SMBios};
@@ -18,6 +20,20 @@ pub struct MemDevice<'a> {
     //pub size: Option<Data>,
     //pub mem_type: Option<String>,
     device: SMBiosMemoryDevice<'a>,
+}
+
+pub struct FormFactor(pub smbioslib::MemoryFormFactor);
+
+impl Display for FormFactor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use smbioslib::MemoryFormFactor;
+        let string = match &self.0 {
+            MemoryFormFactor::RowOfChips => "Row of Chips".to_string(),
+            MemoryFormFactor::ProprietaryCard => "Proprietary Card".to_string(),
+            v => format!("{:?}", v).to_uppercase(),
+        };
+        write!(f, "{}", string)
+    }
 }
 
 impl<'a> MemDevice<'a> {
@@ -67,6 +83,13 @@ impl<'a> MemDevice<'a> {
     pub fn mem_type(&self) -> Option<String> {
         match self.device.memory_type() {
             Some(v) => Some(format!("{:?}", v.value).to_uppercase()), // TODO: This is gross
+            None => None,
+        }
+    }
+
+    pub fn form_factor(&self) -> Option<FormFactor> {
+        match self.device.form_factor() {
+            Some(v) => Some(FormFactor(v.value)),
             None => None,
         }
     }
@@ -122,5 +145,15 @@ mod tests {
         let smb = get_smbios();
         let dev = get_first_mem_device(&smb);
         assert_eq!(dev.speed(), Some(Frequency::from_megahertz(2667.00)));
+    }
+
+    #[test]
+    fn test_form_factor() {
+        let smb = get_smbios();
+        let dev = get_first_mem_device(&smb);
+        assert_eq!(
+            dev.form_factor().unwrap().to_string(),
+            String::from("SODIMM")
+        );
     }
 }
