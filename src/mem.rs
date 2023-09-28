@@ -22,14 +22,31 @@ pub struct MemDevice<'a> {
     device: SMBiosMemoryDevice<'a>,
 }
 
+/// Wrapper for MemoryFormFactor
+/// Done mainly for impling the display trait
 pub struct FormFactor(pub smbioslib::MemoryFormFactor);
 
 impl Display for FormFactor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use smbioslib::MemoryFormFactor;
         let string = match &self.0 {
+            // Most values format correctly when using debug formatting
+            // Manually add cases for when format could be improved.
             MemoryFormFactor::RowOfChips => "Row of Chips".to_string(),
             MemoryFormFactor::ProprietaryCard => "Proprietary Card".to_string(),
+            v => format!("{:?}", v).to_uppercase(),
+        };
+        write!(f, "{}", string)
+    }
+}
+
+pub struct MemoryType(pub smbioslib::MemoryDeviceType);
+
+impl Display for MemoryType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use smbioslib::MemoryDeviceType;
+        let string = match &self.0 {
+            MemoryDeviceType::ThreeDram => "3DRAM".to_string(),
             v => format!("{:?}", v).to_uppercase(),
         };
         write!(f, "{}", string)
@@ -80,9 +97,9 @@ impl<'a> MemDevice<'a> {
         }
     }
 
-    pub fn mem_type(&self) -> Option<String> {
+    pub fn mem_type(&self) -> Option<MemoryType> {
         match self.device.memory_type() {
-            Some(v) => Some(format!("{:?}", v.value).to_uppercase()), // TODO: This is gross
+            Some(v) => Some(MemoryType(v.value)), // TODO: This is gross
             None => None,
         }
     }
@@ -130,7 +147,7 @@ mod tests {
     fn test_type() {
         let smb = get_smbios();
         let dev = get_first_mem_device(&smb);
-        assert_eq!(dev.mem_type(), Some(String::from("DDR4")));
+        assert_eq!(dev.mem_type().unwrap().to_string(), String::from("DDR4"));
     }
 
     #[test]
