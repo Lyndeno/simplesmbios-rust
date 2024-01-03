@@ -41,6 +41,7 @@ impl Display for FormFactor {
     }
 }
 
+#[derive(Eq, PartialEq)]
 pub struct MemoryType(pub smbioslib::MemoryDeviceType);
 
 impl Display for MemoryType {
