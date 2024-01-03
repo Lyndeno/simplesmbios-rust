@@ -24,6 +24,7 @@ pub struct MemDevice<'a> {
 
 /// Wrapper for MemoryFormFactor
 /// Done mainly for impling the display trait
+#[derive(Eq, PartialEq)]
 pub struct FormFactor(pub smbioslib::MemoryFormFactor);
 
 impl Display for FormFactor {
