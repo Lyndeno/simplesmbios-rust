@@ -22,7 +22,7 @@ pub struct MemDevice<'a> {
     device: SMBiosMemoryDevice<'a>,
 }
 
-/// Wrapper for MemoryFormFactor
+/// Wrapper for `MemoryFormFactor`
 /// Done mainly for impling the display trait
 #[derive(Eq, PartialEq)]
 pub struct FormFactor(pub smbioslib::MemoryFormFactor);
@@ -35,9 +35,9 @@ impl Display for FormFactor {
             // Manually add cases for when format could be improved.
             MemoryFormFactor::RowOfChips => "Row of Chips".to_string(),
             MemoryFormFactor::ProprietaryCard => "Proprietary Card".to_string(),
-            v => format!("{:?}", v).to_uppercase(),
+            v => format!("{v:?}").to_uppercase(),
         };
-        write!(f, "{}", string)
+        write!(f, "{string}")
     }
 }
 
@@ -49,13 +49,18 @@ impl Display for MemoryType {
         use smbioslib::MemoryDeviceType;
         let string = match &self.0 {
             MemoryDeviceType::ThreeDram => "3DRAM".to_string(),
-            v => format!("{:?}", v).to_uppercase(),
+            v => format!("{v:?}").to_uppercase(),
         };
-        write!(f, "{}", string)
+        write!(f, "{string}")
     }
 }
 
 impl<'a> MemDevice<'a> {
+    /// Returns vector of memory devices from smbios table
+    ///
+    /// # Errors
+    ///
+    /// Will return an error if parsing the smbios table fails
     pub fn from_smbios(smbios: &'a SMBios) -> MemoryResult<Option<Vec<Self>>> {
         let smb = smbios.data.defined_struct_iter::<SMBiosMemoryDevice>();
         let mut vec = Vec::new();
@@ -65,6 +70,7 @@ impl<'a> MemDevice<'a> {
         Ok(Some(vec))
     }
 
+    /// Returns memory frequency
     pub fn speed(&self) -> Option<Frequency> {
         match self.device.configured_memory_speed() {
             Some(v) => match v {
@@ -115,6 +121,7 @@ impl<'a> MemDevice<'a> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
     use std::path::Path;
 
